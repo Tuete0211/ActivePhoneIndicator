@@ -1,22 +1,18 @@
 /**
    Simple Receiver
-
    Purpose:
       Move a Servo up or down
       Turn on an off LED Strip
       Give the LED Strip a simple color pattern
-
    How it works:
       By checking if a message from an 433 MHz receiver is available a global variable is set.
       It the variable is true the servo turns and the LED Strip is activated.
       If the variable is false the servo is turning in th eopposite direction and the LED Strip is reset.
       To secure the servo maximal and minimal values have to be set
       To control the LED Strip the library FastLED is used
-
    Todo:
       FastLED library
       connecting an LED Strip
-
 */
 
 #include <RCSwitch.h>
@@ -36,7 +32,7 @@ int stopSignal = 5678;
 
 //variables for servo
 Servo myServo;  // create servo object to control a servo
-int myServoPos = 0;    // variable to store the servo position
+float myServoPos = 0;    // variable to store the servo position
 int maxPos = 90;
 int minPos = 10;
 
@@ -55,10 +51,18 @@ void setup() {
 
   // setup servo
   myServo.attach(SERVO_PIN);  // attaches the servo on pin 9 to the servo object
+  myServo.write(0);
+  delay(2000);
+  myServo.write(50);
+  delay(2000);
+  myServo.write(10);
+  delay(2000);
 
   //setup LED strip
   LEDS.addLeds<WS2812, LED_PIN, RGB>(leds, NUM_LEDS);
   LEDS.setBrightness(84);
+
+  Serial.println("setup finish");
 }
 
 void loop() {
@@ -78,38 +82,44 @@ void loop() {
     mySwitch.resetAvailable();
   }
 
-  if (activeCall && (millis() % 1000 == 0)) {
-    //moveHandleUp();
-    lightOn();
-    Serial.print("active Call");
+  if (activeCall) {
+    if (millis() % 100 == 0) {
+      moveHandleUp();
+      lightOn();
+      Serial.print("active Call");
+    }
   }
-  /*else {
-    //moveHandleDown();
+  else {
+    moveHandleDown();
     lightOff();
-  }*/
+  }
 }
 
 void moveHandleUp() {
-  myServoPos++;
-  if (myServoPos > maxPos) {
-    myServoPos = maxPos;
+ 
+  if (myServoPos != maxPos) { 
+    myServoPos=maxPos;
+    myServo.write(maxPos);
+    delay(1000);
   }
-  myServo.write(myServoPos);
-  delay(1);
+  
+  
 }
 
 void moveHandleDown() {
-  myServoPos--;
-  if (myServoPos < minPos) {
-    myServoPos = minPos;
+  
+  if (myServoPos != minPos) {
+    myServoPos=minPos;
+    myServo.write(minPos);
+    delay(1000);
   }
-  myServo.write(myServoPos);
-  delay(1);
+  
+  
 }
 
 void lightOn() {
   static uint8_t startIndex = 0;
-  startIndex = startIndex + 1; /* motion speed */
+  startIndex = startIndex + 4; /* motion speed */
 
   FillLEDsFromPaletteColors( startIndex);
 
@@ -118,9 +128,30 @@ void lightOn() {
 }
 
 void lightOff() {
-  //Serial.println("Reset LED strip");
-  for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i].nscale8(200);
+  if (leds[0].r != 0) {
+    //Serial.println("Reset LED strip");
+    for (int i = 0; i < NUM_LEDS; i++) {
+      leds[i] = CRGB::Black;
+      //leds[i].nscale8(200);
+    }
+    FastLED.show();
+  }else if (leds[0].g != 0) {
+    //Serial.println("Reset LED strip");
+    for (int i = 0; i < NUM_LEDS; i++) {
+      leds[i] = CRGB::Black;
+      //leds[i].nscale8(200);
+    }
+    FastLED.show();
+  } else if (leds[0].b != 0) {
+    //Serial.println("Reset LED strip");
+    for (int i = 0; i < NUM_LEDS; i++) {
+      leds[i] = CRGB::Black;
+      //leds[i].nscale8(200);
+    }
+    FastLED.show();
+  } else {
+    //Serial.println("Is Black");
+    Serial.println(leds[23].r);
   }
 }
 
