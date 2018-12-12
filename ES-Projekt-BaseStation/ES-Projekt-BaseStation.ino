@@ -18,8 +18,8 @@
 
 RCSwitch mySwitch = RCSwitch();
 const short transmitterPin = 10;
-String startSignal = "jdkbgvoserb";
-String stopSignal = "lmbinxöhua";
+int startSignal = 1234;
+int stopSignal = 5678;
 
 const short minDataPackage = 100; // above is a Spike or a Data Package
 const short minSpike = 160; // above is a Spike
@@ -36,8 +36,9 @@ bool ledActive = false;
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
+  Serial.println("Start...");
   pinMode(ledPin, OUTPUT);
-  myswitch.enableTransmit(transmitterPin);
+  mySwitch.enableTransmit(transmitterPin);
 }
 
 void loop() {
@@ -67,10 +68,10 @@ void loop() {
     if (phoneLifted != ledActive) {
       digitalWrite(ledPin, phoneLifted ? HIGH : LOW);
       if (phoneLifted) {
-        mySwitch.send(startSignal);
+        //mySwitch.send(startSignal);
         delay(1);
       } else {
-        myswitch.send(stopSiganl);
+        //mySwitch.send(stopSiganl);
         delay(1);
       }
       ledActive = phoneLifted;
