@@ -16,47 +16,50 @@
 
 #include <RCSwitch.h>
 
+#define DEBUG 0
+#define TRANSMITTER_PIN 10
+#define INPUT_PIN 0
+#define LED_PIN 6
+
 RCSwitch mySwitch = RCSwitch();
-const short transmitterPin = 10;
 int startSignal = 1234;
 int stopSignal = 5678;
 
-const short minDataPackage = 100; // above is a Spike or a Data Package
-const short minCount = 80;
-const short inputPinNumber = 0;
-const short ledPin = 6;
+const short spikeThreshold = 100; // above is a Spike or a Data Package
+const short spikeCounterThreshold = 80;
 
-short framesWithDataPackage = 0; // Zähler für Anzahl von Durchläufen, in welchen (vermutlich) Daten übertragen werden
-short dataPackageCounter = 0; // Zähler für Anzahl von Durchläufen mit Datenübertragung zwischen Spikes (01 & 10 wird in dieser Zeit übertragen).
+short spikeCounter = 0; // Zähler für Anzahl von Durchläufen mit Datenübertragung zwischen Spikes (01 & 10 wird in dieser Zeit übertragen).
 short sendCounter = 0;
 unsigned long oldMillis = 0;
+
 bool phoneLifted = false;
 bool ledActive = false;
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
-  Serial.println("Start...");
-  pinMode(ledPin, OUTPUT);
-  mySwitch.enableTransmit(transmitterPin);
+  if (DEBUG) {
+    Serial.begin(9600);
+    Serial.println("Start...");
+  }
+  pinMode(LED_PIN, OUTPUT);
+  mySwitch.enableTransmit(TRANSMITTER_PIN);
 }
 
 void loop() {
 
   // put your main code here, to run repeatedly:
-  short analogInput = analogRead(inputPinNumber);
-  //Serial.println(analogInput);
+  short analogInput = analogRead(INPUT_PIN);
+  if (DEBUG)Serial.println(analogInput);
 
-  /* Testen ob mind. zwei mal Daten zwischen Spikes gesendet wurden*/
-  if (analogInput > minDataPackage) { // Spike entdeckt
-    dataPackageCounter++;
+  if (analogInput > spikeThreshold) { // Spike entdeckt
+    spikeCounter++;
   }
 
   if (oldMillis + 100 < millis()) { // every 100ms the LED can be changed
-    Serial.println(dataPackageCounter);
-    phoneLifted = dataPackageCounter > minCount;
+    //if (DEBUG)Serial.println(spikeCounter);
+    phoneLifted = spikeCounter > spikeCounterThreshold;
     if (phoneLifted != ledActive) {
-      digitalWrite(ledPin, phoneLifted ? HIGH : LOW);
+      digitalWrite(LED_PIN, phoneLifted ? HIGH : LOW);
       if (phoneLifted) {
         mySwitch.send(startSignal, 24);
         delay(1);
@@ -78,7 +81,7 @@ void loop() {
     } else {
       sendCounter++;
     }
-    dataPackageCounter = 0;
+    spikeCounter = 0;
     oldMillis = millis();
   }
 }

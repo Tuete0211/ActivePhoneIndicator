@@ -19,6 +19,8 @@
 #include <Servo.h>
 #include <FastLED.h>
 
+#define RAINBOW 0
+#define DEBUG 0
 #define RECEIVER_PIN 0
 #define SERVO_PIN 9
 #define LED_PIN 3
@@ -44,8 +46,10 @@ bool activeCall = false;
 void setup() {
   delay( 3000 ); // power-up safety delay
 
-  Serial.begin(9600);
-  Serial.println("Start");
+  if (DEBUG) {
+    Serial.begin(9600);
+    Serial.println("Start");
+  }
   //setup receiver
   mySwitch.enableReceive(RECEIVER_PIN);  // Receiver on interrupt 0 => that is pin #2
 
@@ -59,17 +63,17 @@ void setup() {
   delay(2000);
 
   //setup LED strip
-  LEDS.addLeds<WS2812, LED_PIN, RGB>(leds, NUM_LEDS);
+  LEDS.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
   LEDS.setBrightness(84);
 
-  Serial.println("setup finish");
+  if(DEBUG)Serial.println("setup finish");
 }
 
 void loop() {
   // check status and maybe update it.
   if (mySwitch.available()) {
     int value = mySwitch.getReceivedValue();
-    Serial.println(value);
+    if(DEBUG)Serial.println(value);
     if (value == 0) {
       //Serial.print("Unknown encoding");
     } else if (value == startSignal) {
@@ -77,81 +81,72 @@ void loop() {
     } else if (value == stopSignal) {
       activeCall = false;
     } else {
-      //Serial.println("Unknown message");
+      if(DEBUG)Serial.println("Unknown message");
     }
     mySwitch.resetAvailable();
   }
 
-  if (activeCall) {
-    if (millis() % 100 == 0) {
+  if (millis() % 100 == 0) {
+    if (activeCall) {
       moveHandleUp();
       lightOn();
-      Serial.print("active Call");
+      if(DEBUG)Serial.print("active Call");
+    } else {
+      moveHandleDown();
+      lightOff();
     }
-  }
-  else {
-    moveHandleDown();
-    lightOff();
   }
 }
 
 void moveHandleUp() {
- 
-  if (myServoPos != maxPos) { 
-    myServoPos=maxPos;
+  if (myServoPos != maxPos) {
+    myServoPos = maxPos;
     myServo.write(maxPos);
     delay(1000);
   }
-  
-  
 }
 
 void moveHandleDown() {
-  
   if (myServoPos != minPos) {
-    myServoPos=minPos;
+    myServoPos = minPos;
     myServo.write(minPos);
     delay(1000);
   }
-  
-  
 }
 
 void lightOn() {
-  static uint8_t startIndex = 0;
-  startIndex = startIndex + 4; /* motion speed */
-
-  FillLEDsFromPaletteColors( startIndex);
-
+  if (RAINBOW) {
+    static uint8_t startIndex = 0;
+    startIndex = startIndex + 4; /* motion speed */
+    FillLEDsFromPaletteColors( startIndex);
+  } else {
+    for (int i = 0; i < NUM_LEDS; i++) {
+      leds[i].setRGB( 0, 155, 220);
+    }
+  }
   FastLED.show();
   //FastLED.delay(1000 / UPDATES_PER_SECOND);
 }
 
 void lightOff() {
   if (leds[0].r != 0) {
-    //Serial.println("Reset LED strip");
     for (int i = 0; i < NUM_LEDS; i++) {
       leds[i] = CRGB::Black;
       //leds[i].nscale8(200);
     }
     FastLED.show();
-  }else if (leds[0].g != 0) {
-    //Serial.println("Reset LED strip");
+  } else if (leds[0].g != 0) {
     for (int i = 0; i < NUM_LEDS; i++) {
       leds[i] = CRGB::Black;
       //leds[i].nscale8(200);
     }
     FastLED.show();
   } else if (leds[0].b != 0) {
-    //Serial.println("Reset LED strip");
     for (int i = 0; i < NUM_LEDS; i++) {
       leds[i] = CRGB::Black;
       //leds[i].nscale8(200);
     }
     FastLED.show();
-  } else {
-    //Serial.println("Is Black");
-    Serial.println(leds[23].r);
   }
 }
 
