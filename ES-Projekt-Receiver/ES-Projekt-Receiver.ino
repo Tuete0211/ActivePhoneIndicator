@@ -86,15 +86,15 @@ void loop() {
     mySwitch.resetAvailable();
   }
 
-  if (millis() % 100 == 0) {
-    if (activeCall) {
+  if (activeCall) {
+    if (millis() % 100 == 0) {
       moveHandleUp();
       lightOn();
       if(DEBUG)Serial.print("active Call");
-    } else {
-      moveHandleDown();
-      lightOff();
     }
+  } else {
+    moveHandleDown();
+    lightOff();
   }
 }
 
