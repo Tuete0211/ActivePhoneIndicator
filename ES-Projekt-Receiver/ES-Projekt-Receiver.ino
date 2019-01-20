@@ -20,12 +20,11 @@
 #include <FastLED.h>
 
 #define RAINBOW 0
-#define DEBUG 0
+#define DEBUG 1
 #define RECEIVER_PIN 0
 #define SERVO_PIN 9
-#define LED_PIN 3
-#define NUM_LEDS 58
-#define UPDATES_PER_SECOND 100
+#define LED_PIN 6
+#define NUM_LEDS 55
 
 //variables for receiver
 RCSwitch mySwitch = RCSwitch();
@@ -35,13 +34,14 @@ int stopSignal = 5678;
 //variables for servo
 Servo myServo;  // create servo object to control a servo
 float myServoPos = 0;    // variable to store the servo position
-int maxPos = 90;
+int maxPos = 80;
 int minPos = 10;
 
 //variables for LED strip
 CRGB leds[NUM_LEDS];
 
 bool activeCall = false;
+bool currentState = false;
 
 void setup() {
   delay( 3000 ); // power-up safety delay
@@ -75,7 +75,7 @@ void loop() {
     int value = mySwitch.getReceivedValue();
     if(DEBUG)Serial.println(value);
     if (value == 0) {
-      //Serial.print("Unknown encoding");
+      Serial.print("Unknown encoding");
     } else if (value == startSignal) {
       activeCall = true;
     } else if (value == stopSignal) {
@@ -86,15 +86,17 @@ void loop() {
     mySwitch.resetAvailable();
   }
 
-  if (activeCall) {
-    if (millis() % 100 == 0) {
-      moveHandleUp();
+  if (activeCall != currentState) {
+    if (activeCall) {
       lightOn();
+      moveHandleUp();
       if(DEBUG)Serial.print("active Call");
+    } else {
+      moveHandleDown();
+      lightOff();
+      if(DEBUG)Serial.print("No Call");
     }
-  } else {
-    moveHandleDown();
-    lightOff();
+      currentState = activeCall;
   }
 }
 
@@ -102,7 +104,7 @@ void moveHandleUp() {
   if (myServoPos != maxPos) {
     myServoPos = maxPos;
     myServo.write(maxPos);
-    delay(1000);
+    delay(500);
   }
 }
 
@@ -110,7 +112,7 @@ void moveHandleDown() {
   if (myServoPos != minPos) {
     myServoPos = minPos;
     myServo.write(minPos);
-    delay(1000);
+    delay(500);
   }
 }
 
