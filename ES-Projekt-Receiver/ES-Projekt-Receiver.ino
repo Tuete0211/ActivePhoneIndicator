@@ -34,8 +34,8 @@ int stopSignal = 5678;
 //variables for servo
 Servo myServo;  // create servo object to control a servo
 float myServoPos = 0;    // variable to store the servo position
-int maxPos = 80;
-int minPos = 10;
+int upPos = 10;
+int downPos = 40;
 
 //variables for LED strip
 CRGB leds[NUM_LEDS];
@@ -101,17 +101,17 @@ void loop() {
 }
 
 void moveHandleUp() {
-  if (myServoPos != maxPos) {
-    myServoPos = maxPos;
-    myServo.write(maxPos);
+  if (myServoPos != upPos) {
+    myServoPos = upPos;
+    myServo.write(upPos);
     delay(500);
   }
 }
 
 void moveHandleDown() {
-  if (myServoPos != minPos) {
-    myServoPos = minPos;
-    myServo.write(minPos);
+  if (myServoPos != downPos) {
+    myServoPos = downPos;
+    myServo.write(downPos);
     delay(500);
   }
 }
