@@ -31,11 +31,12 @@ int stopSignal = 36653082;
 //variables for servo
 Servo myServo;          // create servo object to control a servo
 float myServoPos = 0;   // variable to store the servo position
-int upPos = 10;
-int downPos = 40;
+int upPos = 5;
+int downPos = 48;
 
 //variables for LED strip
 CRGB leds[NUM_LEDS];
+CRGB ledColor = CRGB(0, 155, 220);
 
 bool activeCall = false;
 bool currentState = false;
@@ -55,7 +56,7 @@ void setup() {
   LEDS.setBrightness(84);
 
   bool startUpFinished = false;
-  long stopTime = millis() + 5000;
+  long stopTime = millis() + 3000;
   while (!startUpFinished) {
     lightOn(true);
     startUpFinished = millis() > stopTime;
@@ -63,9 +64,7 @@ void setup() {
   lightOff();
 
   // setup servo
-  myServo.attach(SERVO_PIN);  // attaches the servo on pin 9 to the servo object
-  myServo.write(downPos);
-  delay(1000);
+  // servo has no initial serup. it will be attatched only if its in up-Position and detached for its down position
 
   if(DEBUG)Serial.println("setup finish");
 }
@@ -87,6 +86,7 @@ void loop() {
     mySwitch.resetAvailable();
   }
 
+  // if status has changed
   if (activeCall != currentState) {
     if (activeCall) {
       lightOn(false);
@@ -107,6 +107,7 @@ void loop() {
 void moveHandleUp() {
   if (myServoPos != upPos) {
     myServoPos = upPos;
+    myServo.attach(SERVO_PIN);
     myServo.write(upPos);
     delay(500);
   }
@@ -118,7 +119,7 @@ void moveHandleUp() {
 void moveHandleDown() {
   if (myServoPos != downPos) {
     myServoPos = downPos;
-    myServo.write(downPos);
+    myServo.detach(); // the handle will freely move down by gravity
     delay(500);
   }
 }
@@ -132,7 +133,7 @@ void lightOn(bool startup) {
     startIndex = startIndex + 1; /* motion speed */
     FillLEDsFromPaletteColors(startIndex);
   } else {
-    fill_solid(leds, NUM_LEDS, CRGB(0, 155, 220));
+    fill_solid(leds, NUM_LEDS, ledColor);
   }
   FastLED.show();
 }
